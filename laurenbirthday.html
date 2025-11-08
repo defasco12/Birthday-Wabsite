@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy 20th Birthday, Laurencia!</title>
+    <!-- Memuat Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Mencegah scroll horizontal dan vertikal */
+            overflow: hidden;
+        }
+
+        /* Kontainer untuk partikel (hati) */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* Styling partikel (hati) */
+        .particle {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: float 15s infinite linear;
+            user-select: none;
+        }
+
+        @keyframes float {
+            0% { 
+                transform: translateY(100vh) rotate(0deg); /* Dimulai dari bawah layar */
+                opacity: 0; 
+            }
+            10% { 
+                opacity: 0.7; 
+            }
+            90% { 
+                opacity: 0.7; 
+            }
+            100% { 
+                transform: translateY(-20vh) rotate(720deg); /* Hingga sedikit di atas layar */
+                opacity: 0; 
+            }
+        }
+
+        /* --- STYLING UNTUK BALON --- */
+        #balloon-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .balloon {
+            position: absolute;
+            bottom: -100px;
+            width: 60px;
+            height: 80px;
+            background-color: #a78bfa;
+            border-radius: 50%;
+            transform-origin: center bottom;
+            animation: rise 10s ease-in forwards;
+            opacity: 0.8;
+            filter: brightness(1);
+        }
+
+        .balloon:before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #a78bfa;
+            border-radius: 50%;
+            bottom: -5px;
+            left: calc(50% - 5px);
+            transform: rotate(45deg);
+        }
+
+        .balloon::after {
+            content: '';
+            position: absolute;
+            height: 30px;
+            width: 2px;
+            background-color: #8b5cf6;
+            bottom: -35px;
+            left: calc(50% - 1px);
+        }
+
+        @keyframes rise {
+            0% { 
+                transform: translateY(0) rotate(0deg) scale(0.5); 
+                opacity: 0; 
+            }
+            20% { 
+                opacity: 1; 
+                transform: translateY(-20vh) rotate(10deg) scale(1);
+            }
+            100% { 
+                transform: translateY(-120vh) rotate(-10deg) scale(1.1); 
+                opacity: 0; 
+            }
+        }
+
+        /* --- STYLING UNTUK KONFETI --- */
+        #confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #c084fc;
+            opacity: 0;
+            animation: fall 3s ease-out forwards;
+        }
+
+        .confetti:nth-child(2n) { background-color: #8b5cf6; }
+        .confetti:nth-child(3n) { background-color: #f0abfc; }
+        .confetti:nth-child(4n) { background-color: #d8b4fe; }
+
+        @keyframes fall {
+            0% { 
+                transform: translateY(-100px) translateX(0) rotate(0deg); 
+                opacity: 0; 
+            }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { 
+                transform: translateY(100vh) translateX(var(--x-end)) rotate(720deg);
+                opacity: 0; 
+            }
+        }
+
+        /* Konten utama */
+        main {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: 80px; /* Beri ruang untuk music player */
+        }
+
+        /* Styling untuk setiap slide */
+        .slide {
+            position: absolute;
+            width: 100%;
+            max-width: 64rem;
+            padding: 1rem;
+            text-align: center;
+            transition: opacity 1.5s ease-in-out;
+            opacity: 0;
+            pointer-events: none; 
+        }
+        
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Layar pembuka */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Music Player Ala Spotify */
+        #music-player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(24, 24, 27, 0.95); /* Zinc-900 dengan transparansi */
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(139, 92, 246, 0.3); /* Border ungu tipis */
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+            transform: translateY(100%); /* Sembunyi dulu di bawah */
+            transition: transform 0.5s ease-out;
+        }
+
+        #music-player-bar.visible {
+            transform: translateY(0); /* Muncul ke layar */
+        }
+
+        /* Animasi elemen */
+        .anim-fade-in-up { animation: fadeInUp 1.5s ease-out forwards; opacity: 0; }
+        .anim-zoom-in { animation: zoomIn 1.2s ease-out forwards; opacity: 0; }
+        .anim-slide-left { animation: slideInLeft 1.2s ease-out forwards; opacity: 0; }
+
+        .anim-fade-in-up.delay-1, .anim-zoom-in.delay-1, .anim-slide-left.delay-1 { animation-delay: 0.5s; }
+        .anim-fade-in-up.delay-2, .anim-zoom-in.delay-2, .anim-slide-left.delay-2 { animation-delay: 1s; }
+        .anim-fade-in-up.delay-3, .anim-zoom-in.delay-3, .anim-slide-left.delay-3 { animation-delay: 1.5s; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body class="bg-black text-purple-200">
+
+    <div id="particle-container"></div>
+    <div id="balloon-container"></div>
+    <div id="confetti-container"></div>
+
+    <audio id="birthday-song" loop>
+        <source src="music bg/SunKissed Lola - Pasilyo (Lyrics) - Dan Music.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="start-overlay">
+        <h1 class="text-3xl md:text-5xl font-bold mb-4 text-center px-4">Hai, Laurencia!</h1>
+        <p class="text-base md:text-xl text-purple-200 mb-8 text-center px-4">Ada sesuatu yang spesial untukmu...</p>
+        <button id="start-button" class="bg-purple-600 text-white font-bold py-3 px-8 rounded-lg text-lg md:text-xl shadow-lg hover:bg-purple-700 transition-colors">
+            Klik untuk Memulai
+        </button>
+    </div>
+
+    <main class="container mx-auto px-4">
+
+        <!-- Slide 1: Ucapan Utama -->
+        <section class="slide">
+            <h1 class="text-4xl sm:text-6xl md:text-8xl text-purple-300 mb-2 md:mb-4 font-bold tracking-tight anim-zoom-in leading-tight">
+                Happy 20th Birthday
+            </h1>
+            <h2 class="text-2xl sm:text-4xl md:text-6xl text-white font-bold tracking-tight mb-4 md:mb-6 anim-fade-in-up delay-1">
+                Laurencia Novena
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-purple-100 max-w-xl md:max-w-2xl mx-auto anim-fade-in-up delay-2 px-4">
+                Selamat ulang tahun yang ke-20, sayang! Semoga hari ini membawa kebahagiaan sebanyak kamu membawa kebahagiaan ke hidupku.
+            </p>
+        </section>
+
+        <!-- Slide 2: Pesan Spesial -->
+        <section class="slide">
+            <div class="bg-gray-900/70 backdrop-blur-sm border border-purple-700 p-6 sm:p-8 md:p-10 rounded-lg shadow-xl text-left max-w-md md:max-w-3xl mx-auto anim-zoom-in">
+                <h3 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-purple-300 mb-4 anim-slide-left delay-1">My Dearest Lau,</h3>
+                <p class="text-sm sm:text-base md:text-lg text-purple-100 leading-relaxed anim-slide-left delay-2">
+                    20 tahun... waktu yang luar biasa untuk merayakanmu. Melihatmu tumbuh dan menjadi wanita hebat seperti sekarang adalah sebuah anugerah.
+                    <br><br>
+                    Aku sangat bersyukur bisa menjadi bagian dari perjalananmu. Semoga di usia yang baru ini, semua impianmu terwujud.
+                    <br><br>
+                    Aku cinta kamu.
+                </p>
+            </div>
+        </section>
+
+        <!-- Slide 3: Galeri Foto Kenangan (6 Foto) -->
+        <section class="slide">
+            <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold text-purple-300 mb-4 md:mb-8 tracking-tight anim-zoom-in">
+                Our Sweet Memories
+            </h3>
+            <!-- Grid untuk Mobile, Flex untuk Tablet ke atas -->
+            <div class="grid grid-cols-3 sm:flex sm:flex-wrap justify-center items-center gap-3 sm:gap-4 md:gap-8 max-w-5xl mx-auto px-2">
+                <!-- Foto 1 -->
+                <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-1 transform rotate-[-6deg] hover:rotate-[-2deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <img src="img/img1.jpg" alt="Kenangan 1" class="w-full h-auto object-cover aspect-square rounded-sm sm:rounded-md">
+                </div>
+                <!-- Foto 2 -->
+                <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-1 transform rotate-[4deg] hover:rotate-[1deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <img src="img/img2.jpg" alt="Kenangan 2" class="w-full h-auto object-cover aspect-square rounded-sm sm:rounded-md">
+                </div>
+                <!-- Foto 3 -->
+                <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-2 transform rotate-[-3deg] hover:rotate-[0deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <img src="img/img3.jpg" alt="Kenangan 3" class="w-full h-auto object-cover aspect-square rounded-sm sm:rounded-md">
+                </div>
+                 <!-- Foto 4 -->
+                 <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-2 transform rotate-[7deg] hover:rotate-[3deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <img src="img/img4.jpg" alt="Kenangan 4" class="w-full h-auto object-cover aspect-square rounded-sm sm:rounded-md">
+                </div>
+                 <!-- Foto 5 -->
+                 <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-3 transform rotate-[-5deg] hover:rotate-[-1deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <img src="img/img5.jpg" alt="Kenangan 5" class="w-full h-auto object-cover aspect-square rounded-sm sm:rounded-md">
+                </div>
+                 <!-- Foto 6 -->
+                 <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-3 transform rotate-[2deg] hover:rotate-[0deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <img src="img/img6.jpg" alt="Kenangan 6" class="w-full h-auto object-cover aspect-square rounded-sm sm:rounded-md">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Video Kenangan (6 Video) -->
+        <section class="slide" id="video-slide">
+            <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold text-purple-300 mb-4 md:mb-8 tracking-tight anim-zoom-in">
+                Moments to Remember
+            </h3>
+            <!-- Grid untuk Mobile, Flex untuk Tablet ke atas -->
+            <div class="grid grid-cols-3 sm:flex sm:flex-wrap justify-center items-center gap-3 sm:gap-4 md:gap-8 max-w-5xl mx-auto px-2">
+                <!-- Video 1 -->
+                <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-1 transform rotate-[-3deg] hover:rotate-[0deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <video class="memory-video w-full h-auto aspect-square object-cover rounded-sm sm:rounded-md" loop muted playsinline>
+                        <source src="video/video1.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <!-- Video 2 -->
+                <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-1 transform rotate-[5deg] hover:rotate-[2deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <video class="memory-video w-full h-auto aspect-square object-cover rounded-sm sm:rounded-md" loop muted playsinline>
+                        <source src="video/video2.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <!-- Video 3 -->
+                <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-2 transform rotate-[-7deg] hover:rotate-[-4deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <video class="memory-video w-full h-auto aspect-square object-cover rounded-sm sm:rounded-md" loop muted playsinline>
+                        <source src="video/video3.mp4" type="video/mp4">
+                    </video>
+                </div>
+                 <!-- Video 4 -->
+                 <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-2 transform rotate-[4deg] hover:rotate-[1deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <video class="memory-video w-full h-auto aspect-square object-cover rounded-sm sm:rounded-md" loop muted playsinline>
+                        <source src="video/video4.mp4" type="video/mp4">
+                    </video>
+                </div>
+                 <!-- Video 5 -->
+                 <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-3 transform rotate-[-2deg] hover:rotate-[0deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <video class="memory-video w-full h-auto aspect-square object-cover rounded-sm sm:rounded-md" loop muted playsinline>
+                        <source src="video/video5.mp4" type="video/mp4">
+                    </video>
+                </div>
+                 <!-- Video 6 -->
+                 <div class="bg-white p-1.5 sm:p-2 md:p-3 rounded-md sm:rounded-lg shadow-lg shadow-purple-400/40 anim-zoom-in delay-3 transform rotate-[6deg] hover:rotate-[2deg] hover:scale-105 transition-all duration-300 w-24 sm:w-32 md:w-48 lg:w-64">
+                    <video class="memory-video w-full h-auto aspect-square object-cover rounded-sm sm:rounded-md" loop muted playsinline>
+                        <source src="video/video6.mp4" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Penutup -->
+        <section class="slide">
+            <p class="text-2xl sm:text-3xl md:text-4xl font-semibold text-purple-300 anim-zoom-in px-4 text-center">
+                With all my love,
+            </p>
+            <p class="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-4 anim-fade-in-up delay-1 px-4 text-center">
+                Your Sweet Partner
+            </p>
+        </section>
+
+    </main>
+
+    <!-- Music Player Bar -->
+    <div id="music-player-bar">
+        <div class="flex items-center gap-3">
+            <!-- Ikon Musik -->
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-900/50 rounded-md flex items-center justify-center border border-purple-500/30">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 sm:w-6 sm:h-6 text-purple-300">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V0" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V0" />
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 11.25l-3-3m0 0l-3 3m3-3v7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /> <!-- Ganti dengan ikon note musik sederhana jika perlu -->
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V0" />
+                </svg>
+                <span class="text-xl">🎵</span>
+            </div>
+            <!-- Info Lagu -->
+            <div class="flex flex-col">
+                <span class="text-white font-semibold text-sm sm:text-base truncate max-w-[120px] sm:max-w-xs">Pasilyo</span>
+                <span class="text-gray-400 text-xs sm:text-sm truncate max-w-[120px] sm:max-w-xs">SunKissed Lola </span>
+            </div>
+        </div>
+
+        <!-- Tombol Kontrol -->
+        <div class="flex items-center gap-4 sm:gap-6 mr-2 sm:mr-4">
+            <!-- Tombol Previous (Hiasan) -->
+             <button class="text-gray-400 hover:text-white transition hidden sm:block">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+                    <path d="M19 20L9 12l10-8v16zM5 4h2v16H5V4z"/>
+                </svg>
+            </button>
+
+            <!-- Tombol Play/Pause Utama -->
+            <button id="play-pause-btn" class="bg-white rounded-full p-2 sm:p-3 hover:scale-105 transition flex items-center justify-center">
+                <!-- Ikon Play (Default Hidden saat mulai) -->
+                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 sm:w-8 sm:h-8 text-black hidden">
+                    <path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd" />
+                </svg>
+                <!-- Ikon Pause (Default Visible saat mulai) -->
+                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 sm:w-8 sm:h-8 text-black">
+                    <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0a.75.75 0 01.75-.75h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75h-1.5a.75.75 0 01-.75-.75V5.25z" clip-rule="evenodd" />
+                </svg>
+            </button>
+
+            <!-- Tombol Next (Hiasan) -->
+            <button class="text-gray-400 hover:text-white transition hidden sm:block">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6">
+                    <path d="M5 4l10 8-10 8V4zm14 0h2v16h-2V4z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const particleContainer = document.getElementById('particle-container');
+            const balloonContainer = document.getElementById('balloon-container');
+            const confettiContainer = document.getElementById('confetti-container');
+            const startOverlay = document.getElementById('start-overlay');
+            const startButton = document.getElementById('start-button');
+            const audio = document.getElementById('birthday-song');
+            const slides = document.querySelectorAll('.slide');
+            const memoryVideos = document.querySelectorAll('.memory-video');
+            const musicPlayerBar = document.getElementById('music-player-bar');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            let currentSlide = 0;
+            const slideDuration = 8000;
+
+            // Hati
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.innerHTML = '💜'; 
+                particle.style.left = `${Math.random() * 100}vw`;
+                particle.style.fontSize = `${Math.random() * 1 + 0.5}rem`;
+                particle.style.animationDelay = `${Math.random() * 15}s`;
+                particle.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                particle.style.opacity = Math.random() * 0.4 + 0.2;
+                particleContainer.appendChild(particle);
+            }
+
+            // Balon
+            function createBalloons() {
+                for (let i = 0; i < 10; i++) {
+                    const balloon = document.createElement('div');
+                    balloon.classList.add('balloon');
+                    balloon.style.left = `${Math.random() * 80 + 10}vw`; 
+                    balloon.style.animationDelay = `${Math.random() * 2}s`; 
+                    balloon.style.transform = `translateX(0) rotate(${Math.random() * 20 - 10}deg)`;
+                    balloon.style.filter = `brightness(${0.8 + Math.random() * 0.4})`;
+                    balloonContainer.appendChild(balloon);
+                    balloon.addEventListener('animationend', () => balloon.remove());
+                }
+            }
+
+            // Konfeti
+            function createConfetti() {
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.top = `${-Math.random() * 200}px`; 
+                    confetti.style.width = `${Math.random() * 8 + 5}px`; 
+                    confetti.style.height = `${Math.random() * 8 + 5}px`; 
+                    confetti.style.animationDelay = `${Math.random() * 0.8}s`; 
+                    confetti.style.animationDuration = `${Math.random() * 2 + 2}s`; 
+                    confetti.style.setProperty('--x-end', `${Math.random() * 200 - 100}px`); 
+                    confettiContainer.appendChild(confetti);
+                    confetti.addEventListener('animationend', () => confetti.remove());
+                }
+            }
+
+            function showSlide(index) {
+                memoryVideos.forEach(video => { video.pause(); video.currentTime = 0; });
+                slides.forEach(slide => slide.classList.remove('active'));
+
+                const activeSlide = slides[index];
+                activeSlide.classList.add('active');
+
+                activeSlide.querySelectorAll('.anim-fade-in-up, .anim-zoom-in, .anim-slide-left').forEach(el => {
+                    el.style.animation = 'none';
+                    el.offsetHeight; 
+                    el.style.animation = '';
+                });
+
+                if (index === 0) {
+                    balloonContainer.innerHTML = ''; 
+                    confettiContainer.innerHTML = '';
+                    createBalloons();
+                    createConfetti();
+                } else {
+                    balloonContainer.innerHTML = '';
+                    confettiContainer.innerHTML = '';
+                }
+
+                if (activeSlide.id === 'video-slide') {
+                    setTimeout(() => {
+                        // Kecilkan volume musik latar saat video diputar (opsional, tapi bagus)
+                        audio.volume = 0.3; 
+                        memoryVideos.forEach(video => video.play().catch(e => console.warn("Autoplay video failed:", e)));
+                    }, 500);
+                } else {
+                    // Kembalikan volume musik latar
+                    audio.volume = 1.0;
+                }
+            }
+
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                showSlide(currentSlide);
+            }
+
+            // Fungsi Update Icon Play/Pause
+            function updatePlayPauseIcon() {
+                if (audio.paused) {
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                } else {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                }
+            }
+
+            // Event Listener Tombol Play/Pause
+            playPauseBtn.addEventListener('click', () => {
+                if (audio.paused) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                }
+                updatePlayPauseIcon();
+            });
+
+            // Sinkronisasi Icon jika audio berhenti sendiri (misal selesai)
+            audio.addEventListener('pause', updatePlayPauseIcon);
+            audio.addEventListener('play', updatePlayPauseIcon);
+
+            startButton.addEventListener('click', () => {
+                startOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    startOverlay.style.display = 'none';
+                    // Tampilkan music player bar setelah overlay hilang
+                    musicPlayerBar.classList.add('visible');
+                }, 500);
+
+                audio.play().then(() => {
+                    updatePlayPauseIcon();
+                }).catch(e => console.warn("Autoplay audio failed:", e));
+
+                showSlide(currentSlide);
+                setInterval(nextSlide, slideDuration);
+            });
+        });
+    </script>
+</body>
+</html>
